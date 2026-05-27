@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { submitSubmissionReview } from "@/app/dashboard/admin/actions";
+import { Spinner } from "@/components/Spinner";
 
 type AdminSubmissionActionsProps = {
   submissionId: string;
@@ -73,10 +74,11 @@ export function AdminSubmissionActions({
           type="button"
           disabled={pending}
           onClick={handleSubmit}
-          className="rounded-full border border-gold/40 bg-gold/10 px-4 py-1.5 text-xs font-medium text-gold transition-colors hover:bg-gold/20 disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-4 py-1.5 text-xs font-medium text-gold transition-colors hover:bg-gold/20 disabled:opacity-50"
         >
+          {pending && <Spinner />}
           {pending
-            ? "..."
+            ? "Publication..."
             : status === "reviewed"
               ? "Mettre à jour l'avis"
               : "Publier l'avis"}

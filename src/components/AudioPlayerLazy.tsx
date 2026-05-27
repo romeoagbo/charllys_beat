@@ -17,8 +17,9 @@ const AudioPlayer = dynamic(
 
 type AudioPlayerLazyProps = {
   url: string;
+  maxPreviewRatio?: number;
 };
 
-export function AudioPlayerLazy({ url }: AudioPlayerLazyProps) {
-  return <AudioPlayer url={url} />;
+export function AudioPlayerLazy({ url, maxPreviewRatio }: AudioPlayerLazyProps) {
+  return <AudioPlayer url={url} maxPreviewRatio={maxPreviewRatio} />;
 }

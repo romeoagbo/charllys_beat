@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { normalizePhone } from "@/lib/phone";
 import { Button } from "@/components/Button";
+import { SubmitButton } from "@/components/SubmitButton";
 
 type AuthFormProps = {
   mode: "login" | "register";
@@ -125,9 +126,10 @@ export function AuthForm({ mode }: AuthFormProps) {
             id="email"
             type="email"
             required
+            disabled={loading}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-foreground outline-none transition-colors focus:border-gold"
+            className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-foreground outline-none transition-colors focus:border-gold disabled:opacity-50"
             placeholder="vous@exemple.com"
           />
         </div>
@@ -141,9 +143,10 @@ export function AuthForm({ mode }: AuthFormProps) {
               id="phone"
               type="tel"
               autoComplete="tel"
+              disabled={loading}
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-foreground outline-none transition-colors focus:border-gold"
+              className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-foreground outline-none transition-colors focus:border-gold disabled:opacity-50"
               placeholder="+228 90 00 00 00"
             />
           </div>
@@ -158,9 +161,10 @@ export function AuthForm({ mode }: AuthFormProps) {
             type="password"
             required
             minLength={6}
+            disabled={loading}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-foreground outline-none transition-colors focus:border-gold"
+            className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-foreground outline-none transition-colors focus:border-gold disabled:opacity-50"
             placeholder="••••••••"
           />
         </div>
@@ -176,17 +180,12 @@ export function AuthForm({ mode }: AuthFormProps) {
           </p>
         )}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded-full bg-gold py-3 font-semibold text-black transition-colors hover:bg-gold-light disabled:opacity-50"
+        <SubmitButton
+          loading={loading}
+          loadingLabel={mode === "login" ? "Connexion..." : "Création..."}
         >
-          {loading
-            ? "Chargement..."
-            : mode === "login"
-              ? "Se connecter"
-              : "Créer mon compte"}
-        </button>
+          {mode === "login" ? "Se connecter" : "Créer mon compte"}
+        </SubmitButton>
 
         {mode === "login" && (
           <p className="text-center text-sm text-muted">

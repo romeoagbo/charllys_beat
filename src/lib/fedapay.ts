@@ -97,36 +97,10 @@ async function fedaPayRequest<T>(
   return payload as T;
 }
 
-export function phoneForFedapay(phone: string | null | undefined) {
-  const digits = (phone ?? "").replace(/\D/g, "");
-
-  if (digits.startsWith("228")) {
-    return { number: `+${digits}`, country: "tg" };
-  }
-  if (digits.startsWith("229")) {
-    return { number: `+${digits}`, country: "bj" };
-  }
-  if (digits.startsWith("225")) {
-    return { number: `+${digits}`, country: "ci" };
-  }
-  if (digits.startsWith("221")) {
-    return { number: `+${digits}`, country: "sn" };
-  }
-
-  if (digits.length >= 8) {
-    return { number: `+${digits}`, country: "bj" };
-  }
-
-  return null;
-}
-
 export function customerFromProfile(input: {
   email: string;
   displayName: string | null;
-  phone: string | null;
 }): FedaPayCustomerInput {
-  const phone = phoneForFedapay(input.phone);
-
   if (!input.email.includes("@")) {
     throw new Error("Adresse email invalide sur votre compte.");
   }
@@ -141,7 +115,6 @@ export function customerFromProfile(input: {
     firstname,
     lastname,
     email: input.email,
-    ...(phone ? { phone_number: phone } : {}),
   };
 }
 

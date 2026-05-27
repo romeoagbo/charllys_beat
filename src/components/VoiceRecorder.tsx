@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Spinner } from "@/components/Spinner";
 
 type VoiceRecorderProps = {
   onRecorded: (file: File) => void;
@@ -15,7 +16,7 @@ function formatElapsed(seconds: number) {
 }
 
 export function VoiceRecorder({ onRecorded, onClear, disabled }: VoiceRecorderProps) {
-  const [status, setStatus] = useState<"idle" | "recording" | "preview">("idle");
+  const [status, setStatus] = useState<"idle" | "requesting" | "recording" | "preview">("idle");
   const [elapsed, setElapsed] = useState(0);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -47,6 +48,7 @@ export function VoiceRecorder({ onRecorded, onClear, disabled }: VoiceRecorderPr
     }
 
     try {
+      setStatus("requesting");
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
       chunksRef.current = [];
@@ -96,6 +98,7 @@ export function VoiceRecorder({ onRecorded, onClear, disabled }: VoiceRecorderPr
       }, 1000);
     } catch {
       stopStream();
+      setStatus("idle");
       setError("Accès au micro refusé. Autorisez le micro dans votre navigateur.");
     }
   }
@@ -116,6 +119,15 @@ export function VoiceRecorder({ onRecorded, onClear, disabled }: VoiceRecorderPr
     setElapsed(0);
     setError(null);
     onClear?.();
+  }
+
+  if (status === "requesting") {
+    return (
+      <div className="mt-6 inline-flex items-center gap-2 text-sm text-muted">
+        <Spinner />
+        Accès au micro...
+      </div>
+    );
   }
 
   if (status === "recording") {

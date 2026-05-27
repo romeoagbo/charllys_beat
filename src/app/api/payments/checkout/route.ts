@@ -96,7 +96,6 @@ export async function POST(request: Request) {
     const customer = customerFromProfile({
       email: user.email,
       displayName: profile?.display_name ?? null,
-      phone: profile?.phone ?? null,
     });
 
     const transaction = await createFedaPayTransaction({

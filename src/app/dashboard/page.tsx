@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/Button";
+import { SignOutButton } from "@/components/SignOutButton";
 import { AudioCard } from "@/components/AudioCard";
 import { createClient } from "@/lib/supabase/server";
 import { getProfile, isAdmin } from "@/lib/profile";
@@ -84,14 +85,7 @@ export default async function DashboardPage() {
           <Button href="/audios" variant="ghost">
             Explorer le catalogue
           </Button>
-          <form action="/auth/signout" method="post">
-            <button
-              type="submit"
-              className="rounded-full px-6 py-3 text-sm text-muted transition-colors hover:text-foreground"
-            >
-              Déconnexion
-            </button>
-          </form>
+          <SignOutButton className="rounded-full px-6 py-3 text-sm text-muted transition-colors hover:text-foreground" />
         </div>
 
         <section className="mt-12">

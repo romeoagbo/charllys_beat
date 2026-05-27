@@ -6,6 +6,7 @@ import {
   FedaPayCheckoutButton,
   type FedaPayCheckoutConfig,
 } from "@/components/FedaPayCheckoutButton";
+import { Spinner } from "@/components/Spinner";
 
 type BuyAudioButtonProps = {
   audioId: string;
@@ -105,8 +106,9 @@ export function BuyAudioButton({
           type="button"
           disabled={loading}
           onClick={handleBuy}
-          className="rounded-full bg-gold px-5 py-2 text-sm font-semibold text-black transition-colors hover:bg-gold-light disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-full bg-gold px-5 py-2 text-sm font-semibold text-black transition-colors hover:bg-gold-light disabled:opacity-50"
         >
+          {loading && <Spinner size="md" tone="dark" />}
           {loading ? "Préparation..." : buttonLabel}
         </button>
       )}
@@ -166,9 +168,10 @@ export function DownloadAudioButton({ audioId }: { audioId: string }) {
         type="button"
         disabled={loading}
         onClick={handleDownload}
-        className="rounded-full border border-gold/40 px-5 py-2 text-sm font-medium text-gold transition-colors hover:bg-gold/10 disabled:opacity-50"
+        className="inline-flex items-center gap-2 rounded-full border border-gold/40 px-5 py-2 text-sm font-medium text-gold transition-colors hover:bg-gold/10 disabled:opacity-50"
       >
-        {loading ? "..." : "Télécharger"}
+        {loading && <Spinner />}
+        {loading ? "Téléchargement..." : "Télécharger"}
       </button>
       {error && <p className="text-xs text-red-400">{error}</p>}
     </div>

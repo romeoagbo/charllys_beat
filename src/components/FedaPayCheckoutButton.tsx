@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFedaPayScriptReady } from "@/components/FedaPayScript";
+import { Spinner } from "@/components/Spinner";
 import type { FedaPayCompleteResponse } from "@/types/fedapay-checkout";
 
 export type FedaPayCheckoutConfig = {
@@ -49,6 +50,7 @@ export function FedaPayCheckoutButton({
   const scriptReady = useFedaPayScriptReady();
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [initialized, setInitialized] = useState(false);
+  const [completing, setCompleting] = useState(false);
 
   useEffect(() => {
     if (!scriptReady || initialized) return;
@@ -99,6 +101,7 @@ export function FedaPayCheckoutButton({
     }
 
     try {
+      setCompleting(true);
       const response = await fetch("/api/payments/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -136,12 +139,20 @@ export function FedaPayCheckoutButton({
       );
     } catch {
       onError?.("Erreur réseau. Réessayez.");
+    } finally {
+      setCompleting(false);
     }
   }
 
   return (
-    <button type="button" ref={buttonRef} className={buttonClassName}>
-      {buttonText}
+    <button
+      type="button"
+      ref={buttonRef}
+      disabled={completing}
+      className={`inline-flex items-center justify-center gap-2 ${buttonClassName}`}
+    >
+      {completing && <Spinner size="md" tone="dark" />}
+      {completing ? "Finalisation..." : buttonText}
     </button>
   );
 }

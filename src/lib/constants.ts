@@ -30,3 +30,6 @@ export const STORAGE_BUCKETS = {
   previews: "audio-previews",
   covers: "audio-covers",
 } as const;
+
+/** Fraction du morceau écoutable sans achat (extrait public). */
+export const CATALOG_PREVIEW_RATIO = 0.2;

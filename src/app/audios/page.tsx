@@ -1,6 +1,7 @@
 import { Header } from "@/components/Header";
 import { AudioCard } from "@/components/AudioCard";
 import { createClient } from "@/lib/supabase/server";
+import { getProfile, isAdmin } from "@/lib/profile";
 import { getApprovedAudioIds } from "@/lib/purchases";
 import type { Audio } from "@/types/audio";
 
@@ -15,6 +16,9 @@ export default async function AudiosPage({ searchParams }: AudiosPageProps) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  const profile = user ? await getProfile(user.id) : null;
+  const userIsAdmin = profile ? isAdmin(profile.role) : false;
 
   let query = supabase
     .from("audios")
@@ -35,7 +39,7 @@ export default async function AudiosPage({ searchParams }: AudiosPageProps) {
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-4xl px-6 py-24">
+      <main className="mx-auto w-full max-w-screen-2xl px-6 py-24 sm:px-10 lg:px-12">
         <h1 className="text-3xl font-bold">
           {category ? (
             <>
@@ -69,7 +73,7 @@ export default async function AudiosPage({ searchParams }: AudiosPageProps) {
           </div>
         )}
 
-        <div className="mt-8 space-y-4">
+        <div className="mt-8 grid w-full gap-6">
           {(audios as Audio[] | null)?.map((audio) => (
             <AudioCard
               key={audio.id}
@@ -77,6 +81,7 @@ export default async function AudiosPage({ searchParams }: AudiosPageProps) {
               showPurchase
               purchased={purchasedIds.has(audio.id)}
               isLoggedIn={Boolean(user)}
+              isAdmin={userIsAdmin}
             />
           ))}
         </div>

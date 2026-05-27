@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/Button";
+import { SubmitButton } from "@/components/SubmitButton";
 
 export function ResetPasswordForm() {
   const router = useRouter();
@@ -62,9 +63,10 @@ export function ResetPasswordForm() {
             required
             minLength={6}
             autoComplete="new-password"
+            disabled={loading}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-foreground outline-none transition-colors focus:border-gold"
+            className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-foreground outline-none transition-colors focus:border-gold disabled:opacity-50"
             placeholder="••••••••"
           />
         </div>
@@ -82,9 +84,10 @@ export function ResetPasswordForm() {
             required
             minLength={6}
             autoComplete="new-password"
+            disabled={loading}
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-foreground outline-none transition-colors focus:border-gold"
+            className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-foreground outline-none transition-colors focus:border-gold disabled:opacity-50"
             placeholder="••••••••"
           />
         </div>
@@ -95,13 +98,9 @@ export function ResetPasswordForm() {
           </p>
         )}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded-full bg-gold py-3 font-semibold text-black transition-colors hover:bg-gold-light disabled:opacity-50"
-        >
-          {loading ? "Enregistrement..." : "Enregistrer le mot de passe"}
-        </button>
+        <SubmitButton loading={loading} loadingLabel="Enregistrement...">
+          Enregistrer le mot de passe
+        </SubmitButton>
       </form>
 
       <div className="mt-6 text-center">

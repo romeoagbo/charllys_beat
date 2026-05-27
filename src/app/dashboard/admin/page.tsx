@@ -59,6 +59,9 @@ export default async function AdminPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
+            <Button href="/dashboard/admin/manage" variant="secondary">
+              Utilisateurs & fichiers
+            </Button>
             <Button href="/experts" variant="secondary">
               Voir les experts
             </Button>

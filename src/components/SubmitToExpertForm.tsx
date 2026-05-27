@@ -11,6 +11,7 @@ import {
   STORAGE_BUCKETS,
 } from "@/lib/constants";
 import { VoiceRecorder } from "@/components/VoiceRecorder";
+import { SubmitButton } from "@/components/SubmitButton";
 import type { AudioInsert } from "@/types/audio";
 
 function getExtension(file: File) {
@@ -245,19 +246,13 @@ export function SubmitToExpertForm({ userId }: { userId: string }) {
       )}
       {progress && <p className="text-sm text-gold">{progress}</p>}
 
-      <button
-        type="submit"
-        disabled={loading || !audioFile}
-        className="flex w-full items-center justify-center gap-2 rounded-full bg-gold py-3 font-semibold text-black transition-colors hover:bg-gold-light disabled:opacity-50"
+      <SubmitButton
+        loading={loading}
+        loadingLabel="Envoi..."
+        disabled={!audioFile}
       >
-        {loading && (
-          <span
-            className="h-4 w-4 animate-spin rounded-full border-2 border-black/20 border-t-black"
-            aria-hidden="true"
-          />
-        )}
-        {loading ? "Envoi..." : "Envoyer aux experts"}
-      </button>
+        Envoyer aux experts
+      </SubmitButton>
     </form>
   );
 }

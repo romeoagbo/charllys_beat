@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/Button";
+import { Spinner } from "@/components/Spinner";
 
 type PaymentPendingTrackerProps = {
   transactionId: string;
@@ -15,7 +16,7 @@ export function PaymentPendingTracker({
 }: PaymentPendingTrackerProps) {
   const router = useRouter();
   const [message, setMessage] = useState("Vérification du paiement...");
-  const [checking, setChecking] = useState(false);
+  const [checking, setChecking] = useState(true);
 
   async function checkStatus() {
     setChecking(true);
@@ -65,13 +66,17 @@ export function PaymentPendingTracker({
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted">{message}</p>
+      <p className="inline-flex items-center gap-2 text-sm text-muted">
+        {checking && <Spinner />}
+        {message}
+      </p>
       <button
         type="button"
         disabled={checking}
         onClick={checkStatus}
-        className="rounded-full border border-gold/40 px-5 py-2 text-sm font-medium text-gold transition-colors hover:bg-gold/10 disabled:opacity-50"
+        className="inline-flex items-center gap-2 rounded-full border border-gold/40 px-5 py-2 text-sm font-medium text-gold transition-colors hover:bg-gold/10 disabled:opacity-50"
       >
+        {checking && <Spinner />}
         {checking ? "Vérification..." : "Vérifier à nouveau"}
       </button>
       <div>

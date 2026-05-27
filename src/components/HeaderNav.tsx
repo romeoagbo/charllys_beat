@@ -5,6 +5,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "./Button";
 import { Logo } from "./Logo";
+import { SignOutButton } from "./SignOutButton";
 import type { UserRole } from "@/types/profile";
 
 export type HeaderUser = {
@@ -27,6 +28,7 @@ function getNavForUser(user: HeaderUser | null): NavLink[] {
   if (user.role === "admin") {
     return [
       { href: "/dashboard/admin", label: "Administration" },
+      { href: "/dashboard/admin/manage", label: "Utilisateurs" },
       { href: "/audios", label: "Catalogue" },
       { href: "/experts", label: "Experts" },
       { href: "/dashboard/upload", label: "Publier" },
@@ -84,14 +86,7 @@ function AuthActions({
       >
         {user.displayName ?? user.email}
       </Link>
-      <form action="/auth/signout" method="post">
-        <button
-          type="submit"
-          className="rounded-full px-4 py-2 text-sm text-muted transition-colors hover:text-foreground"
-        >
-          Déconnexion
-        </button>
-      </form>
+      <SignOutButton />
     </div>
   );
 }
@@ -107,7 +102,7 @@ export function HeaderNav({ user }: HeaderNavProps) {
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-md">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+      <div className="mx-auto flex w-full max-w-screen-2xl items-center justify-between px-6 py-4 sm:px-10 lg:px-12">
         <Logo size="md" />
 
         <nav className="hidden items-center gap-8 md:flex">

@@ -11,6 +11,7 @@ import {
   MAX_COVER_SIZE,
   STORAGE_BUCKETS,
 } from "@/lib/constants";
+import { SubmitButton } from "@/components/SubmitButton";
 import type { AudioInsert } from "@/types/audio";
 
 function getExtension(file: File) {
@@ -288,13 +289,13 @@ export function UploadForm({ userId }: { userId: string }) {
         <p className="text-sm text-gold">{progress}</p>
       )}
 
-      <button
-        type="submit"
-        disabled={loading || !audioFile}
-        className="w-full rounded-full bg-gold py-3 font-semibold text-black transition-colors hover:bg-gold-light disabled:opacity-50"
+      <SubmitButton
+        loading={loading}
+        loadingLabel="Publication..."
+        disabled={!audioFile}
       >
-        {loading ? "Publication..." : "Publier l'audio"}
-      </button>
+        Publier l&apos;audio
+      </SubmitButton>
     </form>
   );
 }

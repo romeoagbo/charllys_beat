@@ -2,7 +2,7 @@ import { AudioPlayerLazy } from "@/components/AudioPlayerLazy";
 import { BuyAudioButton } from "@/components/BuyAudioButton";
 import type { Audio, AudioStatus } from "@/types/audio";
 import { createClient } from "@/lib/supabase/server";
-import { STORAGE_BUCKETS } from "@/lib/constants";
+import { STORAGE_BUCKETS, CATALOG_PREVIEW_RATIO } from "@/lib/constants";
 
 type AudioCardProps = {
   audio: Audio;
@@ -11,6 +11,7 @@ type AudioCardProps = {
   purchased?: boolean;
   isLoggedIn?: boolean;
   showPurchase?: boolean;
+  isAdmin?: boolean;
 };
 
 function formatPrice(price: number) {
@@ -46,6 +47,7 @@ export async function AudioCard({
   purchased = false,
   isLoggedIn = false,
   showPurchase = false,
+  isAdmin = false,
 }: AudioCardProps) {
   const isSubmission = audio.kind === "submission";
   const showStatusInHeader = isSubmission && !adminControls;
@@ -77,10 +79,75 @@ export async function AudioCard({
     coverUrl = data.publicUrl;
   }
 
+  const isCatalogPurchase = showPurchase && !isSubmission;
+  const previewLimit =
+    isCatalogPurchase && !purchased && !isAdmin
+      ? CATALOG_PREVIEW_RATIO
+      : undefined;
+
   return (
-    <article className="rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-gold/30">
+    <article className="w-full rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-gold/30 sm:p-6">
+      {isCatalogPurchase ? (
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-stretch lg:gap-8">
+          <div className="flex min-w-0 flex-1 gap-5">
+            <div className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-surface-elevated text-4xl sm:h-32 sm:w-32 lg:h-40 lg:w-40">
+              {coverUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={coverUrl}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                "🎵"
+              )}
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <h3 className="text-lg font-semibold">{audio.title}</h3>
+                  <p className="text-sm text-muted">
+                    {audio.profiles?.display_name ?? "Artiste"} · {audio.category}{" "}
+                    · {formatDuration(audio.duration_seconds)}
+                  </p>
+                </div>
+                <span className="shrink-0 rounded-full bg-gold/10 px-3 py-1 text-sm font-medium text-gold lg:hidden">
+                  {formatPrice(audio.price_fcfa)}
+                </span>
+              </div>
+
+              {audio.description && (
+                <p className="mt-2 line-clamp-2 text-sm text-muted antialiased">
+                  {audio.description}
+                </p>
+              )}
+
+              {previewUrl && (
+                <div className="mt-4 w-full">
+                  <AudioPlayerLazy url={previewUrl} maxPreviewRatio={previewLimit} />
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex shrink-0 flex-col justify-center border-t border-border pt-4 lg:w-72 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
+            <p className="hidden text-sm font-medium text-gold lg:block">
+              {formatPrice(audio.price_fcfa)}
+            </p>
+            <div className="lg:mt-3">
+              <BuyAudioButton
+                audioId={audio.id}
+                priceFcfa={audio.price_fcfa}
+                purchased={purchased}
+                isLoggedIn={isLoggedIn}
+              />
+            </div>
+          </div>
+        </div>
+      ) : (
       <div className="flex gap-4">
-        <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-surface-elevated text-2xl">
+        <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-surface-elevated text-3xl sm:h-24 sm:w-24">
           {coverUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -180,6 +247,7 @@ export async function AudioCard({
           )}
         </div>
       </div>
+      )}
     </article>
   );
 }
