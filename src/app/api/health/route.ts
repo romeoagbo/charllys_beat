@@ -11,6 +11,9 @@ export async function GET() {
       status: "ok",
       supabase: error ? "error" : "connected",
       fedapay: fedapayConfig.isConfigured ? "configured" : "missing",
+      fedapayWebhook: fedapayConfig.isWebhookConfigured
+        ? "configured"
+        : "missing",
     });
   } catch {
     return NextResponse.json(

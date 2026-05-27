@@ -28,16 +28,25 @@ function buildPoolerUrl(supabaseUrl, password) {
   return `postgresql://postgres.${ref}:${encodeURIComponent(password)}@aws-0-eu-west-1.pooler.supabase.com:6543/postgres`;
 }
 
-async function applySchema(databaseUrl) {
-  const sql = readFileSync(
-    resolve(root, "supabase/migrations/001_audios.sql"),
-    "utf8",
-  );
-  const client = new pg.Client({ connectionString: databaseUrl, ssl: { rejectUnauthorized: false } });
+import { readdirSync } from "fs";
+
+async function applyMigrations(databaseUrl) {
+  const migrationsDir = resolve(root, "supabase/migrations");
+  const files = readdirSync(migrationsDir)
+    .filter((f) => f.endsWith(".sql"))
+    .sort();
+
+  const client = new pg.Client({
+    connectionString: databaseUrl,
+    ssl: { rejectUnauthorized: false },
+  });
   await client.connect();
   try {
-    await client.query(sql);
-    console.log("✓ Schéma SQL appliqué");
+    for (const file of files) {
+      const sql = readFileSync(resolve(migrationsDir, file), "utf8");
+      await client.query(sql);
+      console.log(`✓ Migration ${file}`);
+    }
   } finally {
     await client.end();
   }
@@ -96,7 +105,17 @@ async function main() {
 
   const { error: tableError } = await supabase.from("audios").select("id").limit(1);
 
-  if (tableError?.code === "PGRST205" || tableError?.message?.includes("Could not find")) {
+  const { error: roleError } = await supabase
+    .from("profiles")
+    .select("role")
+    .limit(1);
+
+  const needsMigration =
+    tableError?.code === "PGRST205" ||
+    tableError?.message?.includes("Could not find") ||
+    roleError?.message?.includes("role");
+
+  if (needsMigration) {
     const migrationUrl =
       env.DIRECT_URL ||
       env.DATABASE_URL?.replace(":6543/", ":5432/").replace(/\?.*$/, "") ||
@@ -105,7 +124,7 @@ async function main() {
         : null);
 
     if (migrationUrl) {
-      await applySchema(migrationUrl);
+      await applyMigrations(migrationUrl);
     } else {
       console.log("\n⚠ Table audios absente.");
       console.log("Ajoutez DIRECT_URL ou DATABASE_URL dans .env");

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "@/components/Logo";
 
 const footerLinks = {
   Plateforme: [
@@ -9,22 +10,20 @@ const footerLinks = {
   Compte: [
     { href: "/login", label: "Connexion" },
     { href: "/register", label: "Inscription" },
-    { href: "/dashboard/upload", label: "Publier" },
+    { href: "/dashboard/submit", label: "Envoyer aux experts" },
   ],
 };
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-surface">
+    <footer className="isolate border-t border-border bg-surface">
       <div className="mx-auto max-w-6xl px-6 py-12">
         <div className="grid gap-10 md:grid-cols-3">
           <div>
-            <p className="text-xl font-bold">
-              <span className="gold-gradient">Charllys</span>
-            </p>
-            <p className="mt-3 max-w-xs text-sm text-muted leading-relaxed">
-              La plateforme musicale africaine qui connecte artistes,
-              beatmakers et experts musicaux.
+            <Logo size="lg" linked={false} />
+            <p className="mt-3 max-w-xs text-sm text-muted leading-relaxed antialiased">
+              Production musicale africaine — connectez artistes, beatmakers
+              et experts musicaux.
             </p>
           </div>
 
@@ -50,7 +49,7 @@ export function Footer() {
         </div>
 
         <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 text-sm text-muted sm:flex-row">
-          <p>&copy; {new Date().getFullYear()} Charllys. Tous droits réservés.</p>
+          <p>&copy; {new Date().getFullYear()} LBP Records. Tous droits réservés.</p>
           <p>Paiements sécurisés via Fedapay</p>
         </div>
       </div>

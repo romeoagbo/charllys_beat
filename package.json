@@ -7,11 +7,14 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "setup:supabase": "node scripts/setup-supabase.mjs"
+    "setup:supabase": "node scripts/setup-supabase.mjs",
+    "db:migrate": "node scripts/migrate.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.106.2",
+    "fedapay": "^1.2.5",
+    "fedapay-reactjs": "^1.1.2",
     "framer-motion": "^12.40.0",
     "next": "16.2.6",
     "pg": "^8.21.0",

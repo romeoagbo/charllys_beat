@@ -1,11 +1,16 @@
 import { AudioPlayerLazy } from "@/components/AudioPlayerLazy";
-import type { Audio } from "@/types/audio";
+import { BuyAudioButton } from "@/components/BuyAudioButton";
+import type { Audio, AudioStatus } from "@/types/audio";
 import { createClient } from "@/lib/supabase/server";
 import { STORAGE_BUCKETS } from "@/lib/constants";
 
 type AudioCardProps = {
   audio: Audio;
   showActions?: boolean;
+  adminControls?: React.ReactNode;
+  purchased?: boolean;
+  isLoggedIn?: boolean;
+  showPurchase?: boolean;
 };
 
 function formatPrice(price: number) {
@@ -19,16 +24,50 @@ function formatDuration(seconds: number | null) {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-export async function AudioCard({ audio, showActions = false }: AudioCardProps) {
-  const supabase = await createClient();
-  const previewPath = audio.preview_path ?? audio.file_path;
-  const bucket = audio.preview_path
-    ? STORAGE_BUCKETS.previews
-    : STORAGE_BUCKETS.files;
+function formatReviewDate(iso: string) {
+  return new Intl.DateTimeFormat("fr-FR", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(iso));
+}
 
-  const { data: previewUrl } = supabase.storage
-    .from(bucket)
-    .getPublicUrl(previewPath);
+const submissionStatusLabels: Record<AudioStatus, string> = {
+  pending: "En attente d'avis",
+  reviewed: "Avis reçu",
+  draft: "Brouillon",
+  published: "Publié",
+  archived: "Archivé",
+};
+
+export async function AudioCard({
+  audio,
+  showActions = false,
+  adminControls,
+  purchased = false,
+  isLoggedIn = false,
+  showPurchase = false,
+}: AudioCardProps) {
+  const isSubmission = audio.kind === "submission";
+  const showStatusInHeader = isSubmission && !adminControls;
+  const supabase = await createClient();
+
+  let previewUrl: string | null = null;
+  if (!isSubmission && audio.preview_path) {
+    const { data } = supabase.storage
+      .from(STORAGE_BUCKETS.previews)
+      .getPublicUrl(audio.preview_path);
+    previewUrl = data.publicUrl;
+  }
+
+  let submissionUrl: string | null = null;
+  if (isSubmission && adminControls && audio.file_path) {
+    const { data, error } = await supabase.storage
+      .from(STORAGE_BUCKETS.files)
+      .createSignedUrl(audio.file_path, 3600);
+    if (!error && data?.signedUrl) {
+      submissionUrl = data.signedUrl;
+    }
+  }
 
   let coverUrl: string | null = null;
   if (audio.cover_path) {
@@ -50,7 +89,7 @@ export async function AudioCard({ audio, showActions = false }: AudioCardProps) 
               className="h-full w-full object-cover"
             />
           ) : (
-            "🎵"
+            isSubmission ? "🎙️" : "🎵"
           )}
         </div>
 
@@ -63,22 +102,77 @@ export async function AudioCard({ audio, showActions = false }: AudioCardProps) 
                 {formatDuration(audio.duration_seconds)}
               </p>
             </div>
-            <span className="shrink-0 rounded-full bg-gold/10 px-3 py-1 text-sm font-medium text-gold">
-              {formatPrice(audio.price_fcfa)}
-            </span>
+            {showStatusInHeader ? (
+              <span className="shrink-0 rounded-full bg-gold/10 px-3 py-1 text-xs font-medium text-gold antialiased">
+                {submissionStatusLabels[audio.status]}
+              </span>
+            ) : !isSubmission ? (
+              <span className="shrink-0 rounded-full bg-gold/10 px-3 py-1 text-sm font-medium text-gold">
+                {formatPrice(audio.price_fcfa)}
+              </span>
+            ) : null}
           </div>
 
           {audio.description && (
-            <p className="mt-2 line-clamp-2 text-sm text-muted">
+            <p className="mt-2 line-clamp-2 text-sm text-muted antialiased">
               {audio.description}
             </p>
           )}
 
-          <div className="mt-4">
-            <AudioPlayerLazy url={previewUrl.publicUrl} />
-          </div>
+          {previewUrl ? (
+            <div className="mt-4">
+              <AudioPlayerLazy url={previewUrl} />
+            </div>
+          ) : submissionUrl ? (
+            <div className="mt-4">
+              <AudioPlayerLazy url={submissionUrl} />
+            </div>
+          ) : isSubmission ? (
+            <p className="mt-4 text-sm text-muted antialiased">
+              Fichier privé — accessible aux experts musicaux uniquement.
+            </p>
+          ) : null}
 
-          {showActions && (
+          {isSubmission &&
+            audio.status === "reviewed" &&
+            audio.review_feedback &&
+            !adminControls && (
+              <div className="mt-4 rounded-xl border border-gold/20 bg-gold/5 p-4">
+                <p className="text-xs font-medium uppercase tracking-wide text-gold">
+                  Avis de l&apos;expert
+                </p>
+                <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">
+                  {audio.review_feedback}
+                </p>
+                {audio.reviewed_at && (
+                  <p className="mt-2 text-xs text-muted">
+                    Reçu le {formatReviewDate(audio.reviewed_at)}
+                  </p>
+                )}
+              </div>
+            )}
+
+          {isSubmission && adminControls && (
+            <div className="mt-4 space-y-4 border-t border-border pt-4">
+              <span className="inline-block rounded-full bg-gold/10 px-3 py-1 text-xs font-medium text-gold antialiased">
+                {submissionStatusLabels[audio.status]}
+              </span>
+              {adminControls}
+            </div>
+          )}
+
+          {showPurchase && !isSubmission && (
+            <div className="mt-4 border-t border-border pt-4">
+              <BuyAudioButton
+                audioId={audio.id}
+                priceFcfa={audio.price_fcfa}
+                purchased={purchased}
+                isLoggedIn={isLoggedIn}
+              />
+            </div>
+          )}
+
+          {showActions && !isSubmission && (
             <p className="mt-3 text-xs text-muted">
               {audio.download_count} téléchargement
               {audio.download_count !== 1 ? "s" : ""}

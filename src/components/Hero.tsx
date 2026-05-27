@@ -49,33 +49,30 @@ export function Hero() {
           className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
         >
           <Button href="/audios">Explorer les audios</Button>
-          <Button href="/dashboard/upload" variant="secondary">
-            Publier un audio
+          <Button href="/dashboard/submit" variant="secondary">
+            Envoyer aux experts
           </Button>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-          className="mx-auto mt-16 flex max-w-lg items-end justify-center gap-1"
-        >
-          {Array.from({ length: 32 }).map((_, i) => (
-            <motion.div
-              key={i}
-              className="w-1 rounded-full bg-gold/60"
-              animate={{
-                height: [12, 8 + ((i * 7) % 40), 12],
-              }}
-              transition={{
-                duration: 1.2 + (i % 5) * 0.2,
-                repeat: Infinity,
-                delay: i * 0.05,
-                ease: "easeInOut",
-              }}
-            />
-          ))}
-        </motion.div>
+        <div className="mx-auto mt-16 flex max-w-lg items-end justify-center gap-1">
+          {Array.from({ length: 32 }).map((_, i) => {
+            const barHeight = 8 + ((i * 7) % 40);
+            return (
+              <motion.div
+                key={i}
+                className="w-1 origin-bottom rounded-full bg-gold/60 will-change-transform"
+                style={{ height: barHeight }}
+                animate={{ scaleY: [0.35, 1, 0.35] }}
+                transition={{
+                  duration: 1.2 + (i % 5) * 0.2,
+                  repeat: Infinity,
+                  delay: i * 0.05,
+                  ease: "easeInOut",
+                }}
+              />
+            );
+          })}
+        </div>
       </div>
     </section>
   );

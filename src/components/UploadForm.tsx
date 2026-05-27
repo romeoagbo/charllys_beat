@@ -148,6 +148,8 @@ export function UploadForm({ userId }: { userId: string }) {
         file_size: audioFile.size,
         mime_type: audioFile.type,
         duration_seconds: duration,
+        kind: "catalog",
+        status: "published",
       };
 
       const { error: insertError } = await supabase.from("audios").insert(row);
