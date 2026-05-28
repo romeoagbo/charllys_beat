@@ -6,28 +6,19 @@ import WaveSurfer from "wavesurfer.js";
 type AudioPlayerProps = {
   url: string;
   height?: number;
-  /** Limite la lecture à une fraction de la durée (ex. 0.2 = 20 %). */
-  maxPreviewRatio?: number;
+  /** Affiche le libellé « extrait » (fichier déjà coupé côté serveur). */
+  isPreview?: boolean;
 };
 
-export function AudioPlayer({
-  url,
-  height = 64,
-  maxPreviewRatio,
-}: AudioPlayerProps) {
+export function AudioPlayer({ url, height = 64, isPreview = false }: AudioPlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
-  const maxPreviewRatioRef = useRef(maxPreviewRatio);
   const [playing, setPlaying] = useState(false);
   const [ready, setReady] = useState(false);
-  const [previewLimitReached, setPreviewLimitReached] = useState(false);
-
-  maxPreviewRatioRef.current = maxPreviewRatio;
 
   useEffect(() => {
     if (!containerRef.current) return;
 
-    setPreviewLimitReached(false);
     setReady(false);
     setPlaying(false);
 
@@ -46,70 +37,19 @@ export function AudioPlayer({
 
     wavesurferRef.current = ws;
 
-    function getMaxPreviewTime() {
-      const ratio = maxPreviewRatioRef.current;
-      if (!ratio) return null;
-      const duration = ws.getDuration();
-      if (!duration || !Number.isFinite(duration)) return null;
-      return duration * ratio;
-    }
-
-    function clampToPreviewLimit() {
-      const maxTime = getMaxPreviewTime();
-      if (maxTime === null) return;
-
-      const current = ws.getCurrentTime();
-      if (current > maxTime) {
-        ws.setTime(maxTime);
-      }
-      if (current >= maxTime - 0.05) {
-        ws.pause();
-        setPreviewLimitReached(true);
-        setPlaying(false);
-      }
-    }
-
     ws.on("ready", () => setReady(true));
-    ws.on("play", () => {
-      setPlaying(true);
-      const maxTime = getMaxPreviewTime();
-      if (maxTime !== null && ws.getCurrentTime() >= maxTime - 0.05) {
-        ws.setTime(0);
-        setPreviewLimitReached(false);
-      }
-    });
+    ws.on("play", () => setPlaying(true));
     ws.on("pause", () => setPlaying(false));
     ws.on("finish", () => setPlaying(false));
-    ws.on("timeupdate", clampToPreviewLimit);
-    ws.on("interaction", () => {
-      requestAnimationFrame(clampToPreviewLimit);
-    });
 
     return () => {
       ws.destroy();
       wavesurferRef.current = null;
     };
-  }, [url, height, maxPreviewRatio]);
+  }, [url, height]);
 
   function togglePlay() {
-    const ws = wavesurferRef.current;
-    if (!ws) return;
-
-    const maxTime =
-      maxPreviewRatio !== undefined
-        ? ws.getDuration() * maxPreviewRatio
-        : null;
-
-    if (
-      maxTime !== null &&
-      !ws.isPlaying() &&
-      ws.getCurrentTime() >= maxTime - 0.05
-    ) {
-      ws.setTime(0);
-      setPreviewLimitReached(false);
-    }
-
-    ws.playPause();
+    wavesurferRef.current?.playPause();
   }
 
   return (
@@ -126,11 +66,9 @@ export function AudioPlayer({
         </button>
         <div ref={containerRef} className="min-w-0 flex-1" />
       </div>
-      {maxPreviewRatio !== undefined && (
+      {isPreview && (
         <p className="text-xs text-muted">
-          {previewLimitReached
-            ? "Extrait terminé · Achetez pour écouter le morceau en entier."
-            : `Extrait · ${Math.round(maxPreviewRatio * 100)} % du morceau`}
+          Extrait · Achetez pour écouter le morceau en entier.
         </p>
       )}
     </div>

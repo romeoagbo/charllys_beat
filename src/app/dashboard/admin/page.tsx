@@ -132,7 +132,7 @@ export default async function AdminPage() {
           ) : (
             <div className="mt-6 space-y-4">
               {(catalog as Audio[]).map((audio) => (
-                <AudioCard key={audio.id} audio={audio} showActions />
+                <AudioCard key={audio.id} audio={audio} showActions isAdmin />
               ))}
             </div>
           )}

@@ -4,7 +4,7 @@ import { UploadForm } from "@/components/UploadForm";
 import { requireAdmin } from "@/lib/require-admin";
 
 export default async function UploadPage() {
-  const { user } = await requireAdmin();
+  await requireAdmin();
 
   return (
     <>
@@ -24,7 +24,7 @@ export default async function UploadPage() {
           le catalogue public.
         </p>
         <div className="mt-8">
-          <UploadForm userId={user.id} />
+          <UploadForm />
         </div>
       </main>
     </>

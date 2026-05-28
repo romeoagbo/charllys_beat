@@ -2,7 +2,7 @@ import { AudioPlayerLazy } from "@/components/AudioPlayerLazy";
 import { BuyAudioButton } from "@/components/BuyAudioButton";
 import type { Audio, AudioStatus } from "@/types/audio";
 import { createClient } from "@/lib/supabase/server";
-import { STORAGE_BUCKETS, CATALOG_PREVIEW_RATIO } from "@/lib/constants";
+import { STORAGE_BUCKETS } from "@/lib/constants";
 
 type AudioCardProps = {
   audio: Audio;
@@ -53,13 +53,22 @@ export async function AudioCard({
   const showStatusInHeader = isSubmission && !adminControls;
   const supabase = await createClient();
 
-  let previewUrl: string | null = null;
+  const canPlayFull = purchased || isAdmin;
+  const isCatalogPurchase = showPurchase && !isSubmission;
+
+  let playbackUrl: string | null = null;
   if (!isSubmission && audio.preview_path) {
-    const { data } = supabase.storage
-      .from(STORAGE_BUCKETS.previews)
-      .getPublicUrl(audio.preview_path);
-    previewUrl = data.publicUrl;
+    if (canPlayFull) {
+      playbackUrl = `/api/audios/play?audioId=${audio.id}`;
+    } else {
+      const { data } = supabase.storage
+        .from(STORAGE_BUCKETS.previews)
+        .getPublicUrl(audio.preview_path);
+      playbackUrl = data.publicUrl;
+    }
   }
+
+  const showPreviewLabel = isCatalogPurchase && !canPlayFull;
 
   let submissionUrl: string | null = null;
   if (isSubmission && adminControls && audio.file_path) {
@@ -79,15 +88,11 @@ export async function AudioCard({
     coverUrl = data.publicUrl;
   }
 
-  const isCatalogPurchase = showPurchase && !isSubmission;
-  const previewLimit =
-    isCatalogPurchase && !purchased && !isAdmin
-      ? CATALOG_PREVIEW_RATIO
-      : undefined;
+  const isCatalogPurchaseLayout = isCatalogPurchase;
 
   return (
     <article className="w-full rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-gold/30 sm:p-6">
-      {isCatalogPurchase ? (
+      {isCatalogPurchaseLayout ? (
         <div className="flex flex-col gap-5 lg:flex-row lg:items-stretch lg:gap-8">
           <div className="flex min-w-0 flex-1 gap-5">
             <div className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-surface-elevated text-4xl sm:h-32 sm:w-32 lg:h-40 lg:w-40">
@@ -123,9 +128,9 @@ export async function AudioCard({
                 </p>
               )}
 
-              {previewUrl && (
+              {playbackUrl && (
                 <div className="mt-4 w-full">
-                  <AudioPlayerLazy url={previewUrl} maxPreviewRatio={previewLimit} />
+                  <AudioPlayerLazy url={playbackUrl} isPreview={showPreviewLabel} />
                 </div>
               )}
             </div>
@@ -186,9 +191,9 @@ export async function AudioCard({
             </p>
           )}
 
-          {previewUrl ? (
+          {playbackUrl ? (
             <div className="mt-4">
-              <AudioPlayerLazy url={previewUrl} />
+              <AudioPlayerLazy url={playbackUrl} isPreview={showPreviewLabel} />
             </div>
           ) : submissionUrl ? (
             <div className="mt-4">
