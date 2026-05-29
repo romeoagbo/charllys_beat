@@ -1,36 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LBP Records — charllys-site
 
-## Getting Started
+Plateforme web pour **LBP Records** : catalogue audio, achats Mobile Money, envoi de maquettes aux experts musicaux et administration.
 
-First, run the development server:
+Construite avec [Next.js](https://nextjs.org) (App Router), [Supabase](https://supabase.com) et [Fedapay](https://fedapay.com) (sandbox).
+
+## Fonctionnalités
+
+- **Catalogue public** — parcourir les audios par catégorie, écouter un extrait (~20 % du morceau)
+- **Achat Mobile Money** — paiement Fedapay, téléchargement sécurisé après validation
+- **Extraits serveur** — découpés avec ffmpeg à l’upload (fichier complet privé, extrait public)
+- **Comptes utilisateurs** — inscription, connexion, tableau de bord
+- **Envoi aux experts** — soumission de maquettes et réception d’avis
+- **Panel admin** — publication catalogue, gestion utilisateurs et fichiers
+
+## Stack
+
+- Next.js 16 · React 19 · TypeScript · Tailwind CSS 4
+- Supabase (Auth, PostgreSQL, Storage)
+- Fedapay · WaveSurfer.js · ffmpeg (extraits audio)
+
+## Prérequis
+
+- Node.js 20+
+- Un projet [Supabase](https://supabase.com)
+- Compte [Fedapay](https://fedapay.com) (sandbox pour les tests)
+- **ffmpeg** embarqué via `ffmpeg-static` (installé avec les dépendances npm)
+
+## Installation
 
 ```bash
+npm install --legacy-peer-deps
+cp .env.local.example .env   # puis renseigner les variables
+npm run setup:supabase
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ouvrir [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Variables d’environnement
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Description |
+|----------|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | URL du projet Supabase |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clé anonyme Supabase |
+| `SUPABASE_SERVICE_ROLE_KEY` | Clé service (API serveur, webhooks) |
+| `DATABASE_URL` | URL PostgreSQL (migrations / setup) |
+| `NEXT_PUBLIC_FEDAPAY_PUBLIC_KEY` | Clé publique Fedapay |
+| `FEDAPAY_SECRET_KEY` | Clé secrète Fedapay |
+| `FEDAPAY_WEBHOOK_SECRET` | Secret de vérification webhook |
+| `NEXT_PUBLIC_SITE_URL` | URL publique du site (callbacks, ngrok en local) |
 
-## Learn More
+## Scripts
 
-To learn more about Next.js, take a look at the following resources:
+| Commande | Description |
+|----------|-------------|
+| `npm run dev` | Serveur de développement |
+| `npm run build` | Build production |
+| `npm run start` | Démarrer le build production |
+| `npm run lint` | ESLint |
+| `npm run setup:supabase` | Migrations SQL + buckets Storage |
+| `npm run previews:regenerate` | Régénérer les extraits des audios existants |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Branches
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Branche | Rôle |
+|---------|------|
+| `main` | Production |
+| `dev` | Intégration — les features arrivent ici avant release |
 
-## Deploy on Vercel
+## Structure des routes principales
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Route | Accès |
+|-------|-------|
+| `/` | Accueil |
+| `/audios` | Catalogue public |
+| `/login` · `/register` | Authentification |
+| `/dashboard` | Espace utilisateur |
+| `/dashboard/upload` | Publication catalogue (admin) |
+| `/dashboard/admin` | Panel administrateur |
+| `/dashboard/submit` | Envoi aux experts |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Déploiement
+
+Build standard Next.js (`npm run build` puis `npm run start`).  
+Configurer toutes les variables d’environnement sur l’hébergeur et pointer le webhook Fedapay vers `/api/payments/webhook`.
+
+Repo : [github.com/romeoagbo/charllys_beat](https://github.com/romeoagbo/charllys_beat)
