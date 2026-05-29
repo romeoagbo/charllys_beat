@@ -2,25 +2,12 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import {
   ACCEPTED_AUDIO_TYPES,
-  ACCEPTED_COVER_TYPES,
   AUDIO_CATEGORIES,
   MAX_AUDIO_SIZE,
-  MAX_COVER_SIZE,
-  STORAGE_BUCKETS,
 } from "@/lib/constants";
-import type { AudioInsert } from "@/types/audio";
-
-function getExtension(file: File) {
-  const fromName = file.name.split(".").pop()?.toLowerCase();
-  if (fromName) return fromName;
-  if (file.type === "audio/mpeg") return "mp3";
-  if (file.type.includes("wav")) return "wav";
-  if (file.type === "audio/ogg") return "ogg";
-  return "audio";
-}
+import { SubmitButton } from "@/components/SubmitButton";
 
 function getAudioDuration(file: File): Promise<number | null> {
   return new Promise((resolve) => {
@@ -37,9 +24,8 @@ function getAudioDuration(file: File): Promise<number | null> {
   });
 }
 
-export function UploadForm({ userId }: { userId: string }) {
+export function UploadForm() {
   const router = useRouter();
-  const supabase = createClient();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -97,61 +83,31 @@ export function UploadForm({ userId }: { userId: string }) {
     setProgress("Préparation...");
 
     try {
-      const audioId = crypto.randomUUID();
-      const ext = getExtension(audioFile);
-      const filePath = `${userId}/${audioId}/original.${ext}`;
-      const previewPath = `${userId}/${audioId}/preview.${ext}`;
-
-      setProgress("Upload du fichier audio...");
-      const { error: fileError } = await supabase.storage
-        .from(STORAGE_BUCKETS.files)
-        .upload(filePath, audioFile, { upsert: false, contentType: audioFile.type });
-
-      if (fileError) throw new Error(fileError.message);
-
-      setProgress("Upload de l'extrait...");
-      const { error: previewError } = await supabase.storage
-        .from(STORAGE_BUCKETS.previews)
-        .upload(previewPath, audioFile, { upsert: false, contentType: audioFile.type });
-
-      if (previewError) throw new Error(previewError.message);
-
-      let coverPath: string | null = null;
-      if (coverFile) {
-        if (!ACCEPTED_COVER_TYPES.includes(coverFile.type)) {
-          throw new Error("Cover : JPG, PNG ou WebP uniquement.");
-        }
-        if (coverFile.size > MAX_COVER_SIZE) {
-          throw new Error("Cover trop volumineuse (max 5 Mo).");
-        }
-        coverPath = `${userId}/${audioId}/cover.${coverFile.name.split(".").pop()?.toLowerCase() ?? "jpg"}`;
-        setProgress("Upload de la cover...");
-        const { error: coverError } = await supabase.storage
-          .from(STORAGE_BUCKETS.covers)
-          .upload(coverPath, coverFile, { upsert: false, contentType: coverFile.type });
-        if (coverError) throw new Error(coverError.message);
-      }
-
       const duration = await getAudioDuration(audioFile);
 
-      setProgress("Enregistrement en base...");
-      const row: AudioInsert = {
-        id: audioId,
-        user_id: userId,
-        title: title.trim(),
-        description: description.trim() || null,
-        category,
-        price_fcfa: price,
-        file_path: filePath,
-        preview_path: previewPath,
-        cover_path: coverPath,
-        file_size: audioFile.size,
-        mime_type: audioFile.type,
-        duration_seconds: duration,
-      };
+      const formData = new FormData();
+      formData.append("audio", audioFile);
+      formData.append("title", title.trim());
+      formData.append("description", description.trim());
+      formData.append("category", category);
+      formData.append("price", String(price));
+      if (duration !== null) {
+        formData.append("durationSeconds", String(duration));
+      }
+      if (coverFile) {
+        formData.append("cover", coverFile);
+      }
 
-      const { error: insertError } = await supabase.from("audios").insert(row);
-      if (insertError) throw new Error(insertError.message);
+      setProgress("Upload et génération de l'extrait (20 %)...");
+      const response = await fetch("/api/audios/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const payload = (await response.json()) as { error?: string };
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Erreur lors de l'upload.");
+      }
 
       router.push("/dashboard");
       router.refresh();
@@ -286,13 +242,13 @@ export function UploadForm({ userId }: { userId: string }) {
         <p className="text-sm text-gold">{progress}</p>
       )}
 
-      <button
-        type="submit"
-        disabled={loading || !audioFile}
-        className="w-full rounded-full bg-gold py-3 font-semibold text-black transition-colors hover:bg-gold-light disabled:opacity-50"
+      <SubmitButton
+        loading={loading}
+        loadingLabel="Publication..."
+        disabled={!audioFile}
       >
-        {loading ? "Publication..." : "Publier l'audio"}
-      </button>
+        Publier l&apos;audio
+      </SubmitButton>
     </form>
   );
 }

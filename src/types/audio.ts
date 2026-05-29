@@ -1,3 +1,12 @@
+export type AudioKind = "catalog" | "submission";
+
+export type AudioStatus =
+  | "draft"
+  | "published"
+  | "archived"
+  | "pending"
+  | "reviewed";
+
 export type Audio = {
   id: string;
   user_id: string;
@@ -11,8 +20,12 @@ export type Audio = {
   cover_path: string | null;
   file_size: number | null;
   mime_type: string | null;
-  status: "draft" | "published" | "archived";
+  kind: AudioKind;
+  status: AudioStatus;
   download_count: number;
+  review_feedback: string | null;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
   created_at: string;
   updated_at: string;
   profiles?: {
@@ -34,4 +47,6 @@ export type AudioInsert = Pick<
   | "file_size"
   | "mime_type"
   | "duration_seconds"
+  | "kind"
+  | "status"
 >;

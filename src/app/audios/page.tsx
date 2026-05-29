@@ -1,6 +1,8 @@
 import { Header } from "@/components/Header";
 import { AudioCard } from "@/components/AudioCard";
 import { createClient } from "@/lib/supabase/server";
+import { getProfile, isAdmin } from "@/lib/profile";
+import { getApprovedAudioIds } from "@/lib/purchases";
 import type { Audio } from "@/types/audio";
 
 type AudiosPageProps = {
@@ -11,9 +13,17 @@ export default async function AudiosPage({ searchParams }: AudiosPageProps) {
   const { category } = await searchParams;
   const supabase = await createClient();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const profile = user ? await getProfile(user.id) : null;
+  const userIsAdmin = profile ? isAdmin(profile.role) : false;
+
   let query = supabase
     .from("audios")
-    .select("*, profiles(display_name)")
+    .select("*, profiles!audios_profile_fkey(display_name)")
+    .eq("kind", "catalog")
     .eq("status", "published")
     .order("created_at", { ascending: false });
 
@@ -21,12 +31,15 @@ export default async function AudiosPage({ searchParams }: AudiosPageProps) {
     query = query.eq("category", category);
   }
 
-  const { data: audios, error } = await query;
+  const [{ data: audios, error }, purchasedIds] = await Promise.all([
+    query,
+    user ? getApprovedAudioIds(user.id) : Promise.resolve(new Set<string>()),
+  ]);
 
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-4xl px-6 py-24">
+      <main className="mx-auto w-full max-w-screen-2xl px-6 py-24 sm:px-10 lg:px-12">
         <h1 className="text-3xl font-bold">
           {category ? (
             <>
@@ -60,9 +73,16 @@ export default async function AudiosPage({ searchParams }: AudiosPageProps) {
           </div>
         )}
 
-        <div className="mt-8 space-y-4">
+        <div className="mt-8 grid w-full gap-6">
           {(audios as Audio[] | null)?.map((audio) => (
-            <AudioCard key={audio.id} audio={audio} />
+            <AudioCard
+              key={audio.id}
+              audio={audio}
+              showPurchase
+              purchased={purchasedIds.has(audio.id)}
+              isLoggedIn={Boolean(user)}
+              isAdmin={userIsAdmin}
+            />
           ))}
         </div>
       </main>

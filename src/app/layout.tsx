@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { FedaPayScriptProvider } from "@/components/FedaPayScript";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -13,9 +14,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Charllys — Plateforme Audio & Production Musicale",
+  title: "LBP Records — Production Musicale",
   description:
     "Écoutez, achetez et produisez de la musique. Connectez artistes, beatmakers et experts musicaux.",
+  icons: {
+    icon: "/logo.jpeg",
+    apple: "/logo.jpeg",
+  },
 };
 
 export default function RootLayout({
@@ -29,7 +34,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        {children}
+        <FedaPayScriptProvider>{children}</FedaPayScriptProvider>
       </body>
     </html>
   );

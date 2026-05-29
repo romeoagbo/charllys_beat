@@ -6,9 +6,11 @@ import WaveSurfer from "wavesurfer.js";
 type AudioPlayerProps = {
   url: string;
   height?: number;
+  /** Affiche le libellé « extrait » (fichier déjà coupé côté serveur). */
+  isPreview?: boolean;
 };
 
-export function AudioPlayer({ url, height = 64 }: AudioPlayerProps) {
+export function AudioPlayer({ url, height = 64, isPreview = false }: AudioPlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
   const [playing, setPlaying] = useState(false);
@@ -16,6 +18,9 @@ export function AudioPlayer({ url, height = 64 }: AudioPlayerProps) {
 
   useEffect(() => {
     if (!containerRef.current) return;
+
+    setReady(false);
+    setPlaying(false);
 
     const ws = WaveSurfer.create({
       container: containerRef.current,
@@ -48,17 +53,24 @@ export function AudioPlayer({ url, height = 64 }: AudioPlayerProps) {
   }
 
   return (
-    <div className="flex items-center gap-3">
-      <button
-        type="button"
-        onClick={togglePlay}
-        disabled={!ready}
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold text-black transition-colors hover:bg-gold-light disabled:opacity-40"
-        aria-label={playing ? "Pause" : "Lecture"}
-      >
-        {playing ? "❚❚" : "▶"}
-      </button>
-      <div ref={containerRef} className="min-w-0 flex-1" />
+    <div className="space-y-2">
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={togglePlay}
+          disabled={!ready}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold text-black transition-colors hover:bg-gold-light disabled:opacity-40"
+          aria-label={playing ? "Pause" : "Lecture"}
+        >
+          {playing ? "❚❚" : "▶"}
+        </button>
+        <div ref={containerRef} className="min-w-0 flex-1" />
+      </div>
+      {isPreview && (
+        <p className="text-xs text-muted">
+          Extrait · Achetez pour écouter le morceau en entier.
+        </p>
+      )}
     </div>
   );
 }

@@ -18,6 +18,11 @@ export const ACCEPTED_AUDIO_TYPES = [
   "audio/webm",
 ];
 
+export function isAcceptedAudioType(type: string) {
+  const base = type.split(";")[0]?.trim() ?? type;
+  return ACCEPTED_AUDIO_TYPES.includes(base);
+}
+
 export const ACCEPTED_COVER_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 export const STORAGE_BUCKETS = {
@@ -25,3 +30,6 @@ export const STORAGE_BUCKETS = {
   previews: "audio-previews",
   covers: "audio-covers",
 } as const;
+
+/** Fraction du morceau écoutable sans achat (extrait public). */
+export const CATALOG_PREVIEW_RATIO = 0.2;
